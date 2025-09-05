@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { Types } from 'mongoose';
+import * as bcrypt from 'bcryptjs';
 import { AppModule } from '../src/app.module';
 import { ClientService } from '../src/modules/client/client.service';
 import { UserService } from '../src/modules/user/user.service';
@@ -23,6 +24,10 @@ async function seed() {
 
     console.log('✅ Demo client created:', client._id);
 
+    // Hash the demo password
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash('password123', saltRounds);
+
     // Create demo user
     const user = await userService.create({
       clientId: new Types.ObjectId(client._id as string),
@@ -31,8 +36,8 @@ async function seed() {
       telegramFirstName: 'Demo',
       telegramLastName: 'User',
       isActive: true,
-      email: 'demo@example.com',
-      password: 'password123', // In production, ensure passwords are hashed
+      email: 'admin@email.com',
+      password: hashedPassword,
     });
 
     console.log('✅ Demo user created:', user._id);
@@ -45,7 +50,7 @@ async function seed() {
         amount: 15000,
         category: ExpenseCategory.FOOD,
         note: 'Nasi goreng ayam',
-        date: new Date('2024-01-15'),
+        date: new Date(),
       },
       {
         clientId: new Types.ObjectId(client._id as string),
@@ -53,7 +58,7 @@ async function seed() {
         amount: 25000,
         category: ExpenseCategory.TRANSPORT,
         note: 'Grab ke kantor',
-        date: new Date('2024-01-15'),
+        date: new Date(),
       },
       {
         clientId: new Types.ObjectId(client._id as string),
@@ -61,7 +66,7 @@ async function seed() {
         amount: 50000,
         category: ExpenseCategory.ENTERTAINMENT,
         note: 'Bioskop dengan teman',
-        date: new Date('2024-01-14'),
+        date: new Date(),
       },
       {
         clientId: new Types.ObjectId(client._id as string),
@@ -69,7 +74,7 @@ async function seed() {
         amount: 75000,
         category: ExpenseCategory.SHOPPING,
         note: 'Beli baju',
-        date: new Date('2024-01-13'),
+        date: new Date(),
       },
       {
         clientId: new Types.ObjectId(client._id as string),
@@ -77,7 +82,7 @@ async function seed() {
         amount: 30000,
         category: ExpenseCategory.HEALTH,
         note: 'Obat batuk',
-        date: new Date('2024-01-12'),
+        date: new Date(),
       },
       {
         clientId: new Types.ObjectId(client._id as string),
@@ -85,7 +90,7 @@ async function seed() {
         amount: 100000,
         category: ExpenseCategory.UTILITIES,
         note: 'Bayar listrik',
-        date: new Date('2024-01-10'),
+        date: new Date(),
       },
     ];
 

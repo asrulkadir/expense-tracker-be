@@ -44,6 +44,9 @@ export class ExpenseController {
     @Request() req: AuthenticatedRequest,
   ): Promise<ExpenseSummary> {
     const clientId = req.user.clientId;
+    console.log('🔍 Getting summary for clientId:', clientId);
+    console.log('🔍 ClientId type:', typeof clientId);
+    console.log('🔍 Query params:', query);
     return this.expenseService.getSummary(query, clientId);
   }
 
@@ -53,6 +56,8 @@ export class ExpenseController {
     @Request() req: AuthenticatedRequest,
   ): Promise<ExpenseListResponse> {
     const clientId = req.user.clientId;
+    console.log('📋 Controller.findAll called with clientId:', clientId);
+    console.log('📋 Query params:', query);
     return this.expenseService.findAll(query, clientId);
   }
 

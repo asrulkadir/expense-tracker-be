@@ -28,7 +28,7 @@ export class AuthService {
     }
 
     // Hash password
-    const saltRounds = 10;
+    const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Create client with provided name
@@ -98,7 +98,7 @@ export class AuthService {
       sub: userId.toString(),
       clientId: clientInfo._id.toString(),
     };
-    const token = this.jwtService.sign(payload);
+    const token = await this.jwtService.signAsync(payload);
 
     return {
       token,

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, FilterQuery } from 'mongoose';
+import { Model, FilterQuery, Types } from 'mongoose';
 import { Expense, ExpenseDocument, ExpenseCategory } from './expense.schema';
 import {
   CreateExpenseDto,
@@ -9,7 +9,7 @@ import {
 } from './dto/expense.dto';
 
 interface ExpenseFilter extends FilterQuery<ExpenseDocument> {
-  clientId: string;
+  clientId: Types.ObjectId;
   userId?: string;
   category?: ExpenseCategory;
   date?: {
@@ -61,6 +61,10 @@ export class ExpenseService {
     query: ExpenseQueryDto,
     clientId: string,
   ): Promise<ExpenseListResponse> {
+    console.log('📋 ExpenseService.findAll called');
+    console.log('📋 ClientId:', clientId);
+    console.log('📋 Query:', query);
+
     const {
       page = 1,
       limit = 10,
@@ -71,7 +75,9 @@ export class ExpenseService {
     } = query;
     const skip = (page - 1) * limit;
 
-    const filter: ExpenseFilter = { clientId };
+    const filter: ExpenseFilter = { clientId: new Types.ObjectId(clientId) };
+
+    console.log('📋 Initial filter:', filter);
 
     if (category) {
       filter.category = category;
@@ -109,6 +115,17 @@ export class ExpenseService {
         filter.date.$lte = new Date(endDate);
       }
     }
+
+    console.log(
+      '📋 Final filter before query:',
+      JSON.stringify(filter, null, 2),
+    );
+
+    // Let's also test without filter first
+    const totalDocsCount = await this.expenseModel.countDocuments({
+      clientId: new Types.ObjectId(clientId),
+    });
+    console.log('📋 Total docs for clientId (no filter):', totalDocsCount);
 
     const [data, total] = await Promise.all([
       this.expenseModel
@@ -138,8 +155,11 @@ export class ExpenseService {
   ): Promise<ExpenseSummary> {
     const { category, startDate, endDate, period } = query;
 
-    const filter: ExpenseFilter = { clientId };
+    const filter: ExpenseFilter = { clientId: new Types.ObjectId(clientId) };
 
+    console.log('💰 ExpenseService.getSummary called');
+    console.log('💰 ClientId received:', clientId, 'type:', typeof clientId);
+    console.log('💰 Initial filter:', filter);
     if (category) {
       filter.category = category;
     }
@@ -176,6 +196,11 @@ export class ExpenseService {
         filter.date.$lte = new Date(endDate);
       }
     }
+
+    console.log(
+      '💰 Final filter before aggregation:',
+      JSON.stringify(filter, null, 2),
+    );
 
     const [totalResult, breakdownResult] = await Promise.all([
       this.expenseModel.aggregate<TotalResult>([
