@@ -10,7 +10,7 @@ export class ClientService {
     @InjectModel(Client.name) private clientModel: Model<ClientDocument>,
   ) {}
 
-  async create(createClientDto: CreateClientDto): Promise<Client> {
+  async create(createClientDto: CreateClientDto): Promise<ClientDocument> {
     const createdClient = new this.clientModel(createClientDto);
     return createdClient.save();
   }

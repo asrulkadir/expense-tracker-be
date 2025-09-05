@@ -1,12 +1,25 @@
-import { IsString, IsOptional, IsBoolean, IsMongoId } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsMongoId,
+  IsEmail,
+} from 'class-validator';
 import { Types } from 'mongoose';
 
 export class CreateUserDto {
   @IsMongoId()
   clientId: Types.ObjectId;
 
+  @IsEmail()
+  email: string;
+
   @IsString()
-  telegramChatId: string;
+  password: string;
+
+  @IsOptional()
+  @IsString()
+  telegramChatId?: string;
 
   @IsOptional()
   @IsString()

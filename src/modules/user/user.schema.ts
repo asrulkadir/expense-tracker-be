@@ -8,8 +8,14 @@ export class User {
   @Prop({ type: Types.ObjectId, ref: 'Client', required: true })
   clientId: Types.ObjectId;
 
+  @Prop({ required: true, unique: true })
+  email: string;
+
   @Prop({ required: true })
-  telegramChatId: string;
+  password: string;
+
+  @Prop({ required: false })
+  telegramChatId?: string;
 
   @Prop({ required: false })
   telegramUsername?: string;
