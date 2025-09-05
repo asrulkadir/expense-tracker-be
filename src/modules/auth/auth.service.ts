@@ -19,7 +19,7 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
-    const { email, password } = registerDto;
+    const { email, password, clientName } = registerDto;
 
     // Check if user already exists
     const existingUser = await this.userService.findByEmail(email);
@@ -31,10 +31,11 @@ export class AuthService {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create a default client for the user
+    // Create client with provided name
     const client = (await this.clientService.create({
-      name: `${email}'s Client`,
-    })) as { _id: Types.ObjectId };
+      name: clientName,
+      isActive: true,
+    })) as { _id: Types.ObjectId; name: string };
 
     // Create user
     const user = (await this.userService.create({
@@ -51,7 +52,11 @@ export class AuthService {
 
     // Generate JWT token
     const userId = user._id;
-    const payload = { email: user.email, sub: userId.toString() };
+    const payload = {
+      email: user.email,
+      sub: userId.toString(),
+      clientId: client._id.toString(),
+    };
     const token = this.jwtService.sign(payload);
 
     return {
@@ -59,6 +64,8 @@ export class AuthService {
       user: {
         id: userId.toString(),
         email: user.email,
+        clientId: client._id.toString(),
+        clientName: client.name,
       },
     };
   }
@@ -66,12 +73,8 @@ export class AuthService {
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     const { email, password } = loginDto;
 
-    // Find user by email
-    const user = (await this.userService.findByEmail(email)) as {
-      _id: Types.ObjectId;
-      email: string;
-      password: string;
-    };
+    // Find user by email with client info
+    const user = await this.userService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -82,9 +85,19 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // Extract client info (populated by UserService)
+    const clientInfo = user.clientId as unknown as {
+      _id: Types.ObjectId;
+      name: string;
+    };
+
     // Generate JWT token
-    const userId = user._id;
-    const payload = { email: user.email, sub: userId.toString() };
+    const userId = user._id as Types.ObjectId;
+    const payload = {
+      email: user.email,
+      sub: userId.toString(),
+      clientId: clientInfo._id.toString(),
+    };
     const token = this.jwtService.sign(payload);
 
     return {
@@ -92,6 +105,8 @@ export class AuthService {
       user: {
         id: userId.toString(),
         email: user.email,
+        clientId: clientInfo._id.toString(),
+        clientName: clientInfo.name,
       },
     };
   }

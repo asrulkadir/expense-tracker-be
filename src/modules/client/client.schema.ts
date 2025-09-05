@@ -8,9 +8,6 @@ export class Client {
   @Prop({ required: true, unique: true })
   name: string;
 
-  @Prop({ required: true, unique: true })
-  clientId: string;
-
   @Prop({ required: false })
   botTelegram?: string;
 

@@ -16,6 +16,10 @@ export class RegisterDto {
   @IsString()
   @MinLength(6)
   password: string;
+
+  @IsString()
+  @MinLength(2)
+  clientName: string;
 }
 
 export class AuthResponseDto {
@@ -23,5 +27,7 @@ export class AuthResponseDto {
   user: {
     id: string;
     email: string;
+    clientId: string;
+    clientName: string;
   };
 }

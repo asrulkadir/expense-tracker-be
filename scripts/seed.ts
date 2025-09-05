@@ -5,8 +5,6 @@ import { ClientService } from '../src/modules/client/client.service';
 import { UserService } from '../src/modules/user/user.service';
 import { ExpenseService } from '../src/modules/expense/expense.service';
 import { ExpenseCategory } from '../src/modules/expense/expense.schema';
-import { ClientDocument } from '../src/modules/client/client.schema';
-import { UserDocument } from '../src/modules/user/user.schema';
 
 async function seed() {
   const app = await NestFactory.createApplicationContext(AppModule);
@@ -17,24 +15,25 @@ async function seed() {
 
   try {
     // Create demo client
-    const client = (await clientService.create({
+    const client = await clientService.create({
       name: 'Demo Client',
-      clientId: 'demo-client-id',
       botTelegram: '@demo_expense_bot',
       isActive: true,
-    })) as ClientDocument;
+    });
 
     console.log('✅ Demo client created:', client._id);
 
     // Create demo user
-    const user = (await userService.create({
+    const user = await userService.create({
       clientId: new Types.ObjectId(client._id as string),
       telegramChatId: '123456789',
       telegramUsername: 'demo_user',
       telegramFirstName: 'Demo',
       telegramLastName: 'User',
       isActive: true,
-    })) as UserDocument;
+      email: '',
+      password: '',
+    });
 
     console.log('✅ Demo user created:', user._id);
 
