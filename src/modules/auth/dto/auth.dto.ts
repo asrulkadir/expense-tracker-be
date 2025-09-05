@@ -31,3 +31,12 @@ export class AuthResponseDto {
     clientName: string;
   };
 }
+
+export class AuthUserResponseDto {
+  user: {
+    id: string;
+    email: string;
+    clientId: string;
+    clientName: string;
+  };
+}

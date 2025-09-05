@@ -31,8 +31,8 @@ async function seed() {
       telegramFirstName: 'Demo',
       telegramLastName: 'User',
       isActive: true,
-      email: '',
-      password: '',
+      email: 'demo@example.com',
+      password: 'password123', // In production, ensure passwords are hashed
     });
 
     console.log('✅ Demo user created:', user._id);
