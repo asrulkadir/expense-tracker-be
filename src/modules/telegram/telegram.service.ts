@@ -6,6 +6,8 @@ import { ClientService } from '../client/client.service';
 import { ExpenseCategory } from '../expense/expense.schema';
 import { ClientDocument } from '../client/client.schema';
 import { UserDocument } from '../user/user.schema';
+import axios, { AxiosResponse } from 'axios';
+import { ConfigService } from '@nestjs/config';
 
 export interface TelegramMessage {
   message_id: number;
@@ -33,30 +35,69 @@ export class TelegramService {
   private readonly logger = new Logger(TelegramService.name);
 
   constructor(
+    private configService: ConfigService,
     private readonly expenseService: ExpenseService,
     private readonly userService: UserService,
     private readonly clientService: ClientService,
   ) {}
 
+  async setWebhook(clientId: string): Promise<any> {
+    const client = await this.clientService.findOne(clientId);
+    if (!client || !client.botToken) {
+      throw new Error('Client or Telegram bot token not found');
+    }
+
+    const botToken = client.botToken;
+    this.logger.log(
+      `Setting Telegram webhook to: ${this.configService.get<string>('TELEGRAM_WEBHOOK_URL')}`,
+    );
+    try {
+      const response: AxiosResponse = await axios.post(
+        `https://api.telegram.org/bot${botToken}/setWebhook`,
+        {
+          url: this.configService.get<string>('TELEGRAM_WEBHOOK_URL'),
+        },
+      );
+      this.logger.log(`Telegram response: ${JSON.stringify(response.data)}`);
+      return response.data;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error(`Error setting webhook: ${error.message}`);
+        throw error;
+      } else {
+        this.logger.error('Unknown error setting webhook');
+        throw new Error('Unknown error setting webhook');
+      }
+    }
+  }
+
   async processUpdate(update: TelegramUpdate): Promise<string> {
+    this.logger.log('Received Telegram update:', JSON.stringify(update));
     if (!update.message) {
       return 'No message found in update';
     }
 
     const message = update.message;
-    const chatId = message.chat.id.toString();
+    const username = message.from.username;
+    if (!username) {
+      return 'Username not found. Please set a Telegram username in your profile settings.';
+    }
     const text = message.text;
 
-    this.logger.log(`Processing message from chat ${chatId}: ${text}`);
+    this.logger.log(`Processing message from user ${username}: ${text}`);
 
-    // Find user by telegram chat ID
-    const user = await this.userService.findByTelegramChatId(chatId);
+    // Find user by telegram username
+    const user = await this.userService.findByTelegramUsername(username);
     if (!user) {
       return 'User not found. Please register first.';
     }
 
+    this.logger.log(`Found user: ${user.email} (ID: ${user._id})`);
+
     // Get client info
-    const client = await this.clientService.findOne(user.clientId.toString());
+    const client = await this.clientService.findOne(
+      user.clientId?._id.toString(),
+    );
     if (!client) {
       return 'Client not found.';
     }
@@ -99,7 +140,7 @@ export class TelegramService {
 
       await this.expenseService.create({
         clientId: new Types.ObjectId(client._id as string),
-        userId: new Types.ObjectId(user._id as string),
+        userId: new Types.ObjectId(user._id),
         amount,
         category,
         note,

@@ -6,11 +6,17 @@ import {
   Param,
   Delete,
   Put,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AuthenticatedRequest } from '../auth/interfaces/auth.interface';
+import { apiResponse } from 'src/shared/utils/api-response.util';
 
 @Controller('users')
+@UseGuards(JwtAuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -20,22 +26,27 @@ export class UserController {
   }
 
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  async findAll(@Request() req: AuthenticatedRequest) {
+    const clientId = req.user.clientId;
+    const result = await this.userService.findAll(clientId);
+    return apiResponse(result, 'Users retrieved successfully');
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const result = await this.userService.findOne(id);
+    return apiResponse(result, 'User retrieved successfully');
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(id, updateUserDto);
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    const result = await this.userService.update(id, updateUserDto);
+    return apiResponse(result, 'User updated successfully');
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(id);
+  async remove(@Param('id') id: string) {
+    const result = await this.userService.remove(id);
+    return apiResponse(result, 'User deleted successfully');
   }
 }

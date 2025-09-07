@@ -1,11 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { User, UserDocument } from './user.schema';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
@@ -13,19 +15,27 @@ export class UserService {
     return createdUser.save();
   }
 
-  async findAll(): Promise<UserDocument[]> {
-    return this.userModel.find({ isActive: true }).populate('clientId').exec();
+  async findAll(clientId: string): Promise<any[]> {
+    this.logger.log(`Finding all users for client: ${clientId}`);
+    const users = await this.userModel
+      .find({ clientId: new Types.ObjectId(clientId), isActive: true })
+      .populate('clientId')
+      .exec();
+
+    this.logger.log(`Found ${users.length} users for client: ${clientId}`);
+
+    return users.map((user) => this.toUserResponse(user));
   }
 
   async findOne(id: string): Promise<UserDocument | null> {
     return this.userModel.findById(id).populate('clientId').exec();
   }
 
-  async findByTelegramChatId(
-    telegramChatId: string,
+  async findByTelegramUsername(
+    telegramUsername: string,
   ): Promise<UserDocument | null> {
     return this.userModel
-      .findOne({ telegramChatId, isActive: true })
+      .findOne({ telegramUsername, isActive: true })
       .populate('clientId')
       .exec();
   }
@@ -75,5 +85,20 @@ export class UserService {
     }
 
     return deletedUser;
+  }
+
+  private toUserResponse(user: UserDocument): UserResponseDto {
+    return {
+      id: user._id?.toString(),
+      email: user.email,
+      clientId: user.clientId?._id?.toString(),
+      telegramChatId: user.telegramChatId?.toString(),
+      telegramUsername: user.telegramUsername,
+      telegramFirstName: user.telegramFirstName,
+      telegramLastName: user.telegramLastName,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 }

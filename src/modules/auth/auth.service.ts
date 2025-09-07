@@ -38,17 +38,12 @@ export class AuthService {
     })) as { _id: Types.ObjectId; name: string };
 
     // Create user
-    const user = (await this.userService.create({
+    const user = await this.userService.create({
       email,
       password: hashedPassword,
       clientId: client._id,
       isActive: true,
-    })) as {
-      _id: Types.ObjectId;
-      email: string;
-      password: string;
-      clientId: Types.ObjectId;
-    };
+    });
 
     // Generate JWT token
     const userId = user._id;
@@ -92,7 +87,7 @@ export class AuthService {
     };
 
     // Generate JWT token
-    const userId = user._id as Types.ObjectId;
+    const userId = user._id as unknown as Types.ObjectId;
     const payload = {
       email: user.email,
       sub: userId.toString(),
