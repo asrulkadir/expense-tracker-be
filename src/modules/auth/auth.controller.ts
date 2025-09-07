@@ -53,8 +53,6 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    console.log('🍪 Login cookie set for user:', result.user.email);
-
     // Return user data without token
     return { user: result.user };
   }

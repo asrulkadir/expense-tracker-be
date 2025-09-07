@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, FilterQuery, Types } from 'mongoose';
 import { Expense, ExpenseDocument, ExpenseCategory } from './expense.schema';
@@ -48,6 +48,8 @@ export interface ExpenseListResponse {
 
 @Injectable()
 export class ExpenseService {
+  private readonly logger = new Logger(ExpenseService.name);
+
   constructor(
     @InjectModel(Expense.name) private expenseModel: Model<ExpenseDocument>,
   ) {}
@@ -61,9 +63,9 @@ export class ExpenseService {
     query: ExpenseQueryDto,
     clientId: string,
   ): Promise<ExpenseListResponse> {
-    console.log('📋 ExpenseService.findAll called');
-    console.log('📋 ClientId:', clientId);
-    console.log('📋 Query:', query);
+    this.logger.log('📋 ExpenseService.findAll called');
+    this.logger.log('📋 ClientId:', clientId);
+    this.logger.log('📋 Query:', query);
 
     const {
       page = 1,
@@ -77,7 +79,7 @@ export class ExpenseService {
 
     const filter: ExpenseFilter = { clientId: new Types.ObjectId(clientId) };
 
-    console.log('📋 Initial filter:', filter);
+    this.logger.log('📋 Initial filter:', filter);
 
     if (category) {
       filter.category = category;
@@ -116,16 +118,10 @@ export class ExpenseService {
       }
     }
 
-    console.log(
+    this.logger.log(
       '📋 Final filter before query:',
       JSON.stringify(filter, null, 2),
     );
-
-    // Let's also test without filter first
-    const totalDocsCount = await this.expenseModel.countDocuments({
-      clientId: new Types.ObjectId(clientId),
-    });
-    console.log('📋 Total docs for clientId (no filter):', totalDocsCount);
 
     const [data, total] = await Promise.all([
       this.expenseModel
@@ -157,9 +153,15 @@ export class ExpenseService {
 
     const filter: ExpenseFilter = { clientId: new Types.ObjectId(clientId) };
 
-    console.log('💰 ExpenseService.getSummary called');
-    console.log('💰 ClientId received:', clientId, 'type:', typeof clientId);
-    console.log('💰 Initial filter:', filter);
+    this.logger.log('💰 ExpenseService.getSummary called');
+    this.logger.log(
+      '💰 ClientId received:',
+      clientId,
+      'type:',
+      typeof clientId,
+    );
+    this.logger.log('💰 Initial filter:', filter);
+
     if (category) {
       filter.category = category;
     }
@@ -197,7 +199,7 @@ export class ExpenseService {
       }
     }
 
-    console.log(
+    this.logger.log(
       '💰 Final filter before aggregation:',
       JSON.stringify(filter, null, 2),
     );

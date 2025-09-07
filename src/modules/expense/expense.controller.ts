@@ -3,12 +3,12 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   Query,
   UseGuards,
   Request,
+  Put,
 } from '@nestjs/common';
 import {
   ExpenseService,
@@ -44,9 +44,6 @@ export class ExpenseController {
     @Request() req: AuthenticatedRequest,
   ): Promise<ExpenseSummary> {
     const clientId = req.user.clientId;
-    console.log('🔍 Getting summary for clientId:', clientId);
-    console.log('🔍 ClientId type:', typeof clientId);
-    console.log('🔍 Query params:', query);
     return this.expenseService.getSummary(query, clientId);
   }
 
@@ -56,8 +53,6 @@ export class ExpenseController {
     @Request() req: AuthenticatedRequest,
   ): Promise<ExpenseListResponse> {
     const clientId = req.user.clientId;
-    console.log('📋 Controller.findAll called with clientId:', clientId);
-    console.log('📋 Query params:', query);
     return this.expenseService.findAll(query, clientId);
   }
 
@@ -66,7 +61,7 @@ export class ExpenseController {
     return this.expenseService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() updateExpenseDto: UpdateExpenseDto) {
     return this.expenseService.update(id, updateExpenseDto);
   }

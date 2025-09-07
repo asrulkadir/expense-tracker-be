@@ -62,11 +62,7 @@ export class TelegramService {
     }
 
     if (text.startsWith('/add')) {
-      return this.handleAddExpense(
-        text,
-        user as UserDocument,
-        client as ClientDocument,
-      );
+      return this.handleAddExpense(text, user, client as ClientDocument);
     }
 
     if (text.startsWith('/help')) {
@@ -74,7 +70,7 @@ export class TelegramService {
     }
 
     if (text.startsWith('/summary')) {
-      return this.handleSummary(user as UserDocument, client as ClientDocument);
+      return this.handleSummary(user, client as ClientDocument);
     }
 
     return 'Unknown command. Type /help for available commands.';
