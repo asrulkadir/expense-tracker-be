@@ -80,7 +80,9 @@ export class TelegramService {
     const message = update.message;
     const username = message.from.username;
     if (!username) {
-      return 'Username not found. Please set a Telegram username in your profile settings.';
+      const errorMsg =
+        'Username not found. Please set a Telegram username in your profile settings.';
+      return errorMsg;
     }
     const text = message.text;
 
@@ -89,7 +91,8 @@ export class TelegramService {
     // Find user by telegram username
     const user = await this.userService.findByTelegramUsername(username);
     if (!user) {
-      return 'User not found. Please register first.';
+      const errorMsg = 'User not found. Please register first.';
+      return errorMsg;
     }
 
     this.logger.log(`Found user: ${user.email} (ID: ${user._id})`);
@@ -99,22 +102,71 @@ export class TelegramService {
       user.clientId?._id.toString(),
     );
     if (!client) {
-      return 'Client not found.';
+      const errorMsg = 'Client not found.';
+      return errorMsg;
     }
+
+    if (!client.botToken) {
+      const errorMsg = 'Telegram bot token not found for this client.';
+      return errorMsg;
+    }
+
+    let responseMessage: string;
 
     if (text.startsWith('/add')) {
-      return this.handleAddExpense(text, user, client as ClientDocument);
+      responseMessage = await this.handleAddExpense(
+        text,
+        user,
+        client as ClientDocument,
+      );
+    } else if (text.startsWith('/help')) {
+      responseMessage = this.getHelpMessage();
+    } else if (text.startsWith('/summary')) {
+      responseMessage = await this.handleSummary(
+        user,
+        client as ClientDocument,
+      );
+    } else {
+      responseMessage = 'Unknown command. Type /help for available commands.';
     }
 
-    if (text.startsWith('/help')) {
-      return this.getHelpMessage();
+    // Send the response message back to Telegram
+    try {
+      await this.sendMessage(message.chat.id, responseMessage, client.botToken);
+      return `Message sent successfully: ${responseMessage}`;
+    } catch (error) {
+      this.logger.error('Error sending message to Telegram:', error);
+      return `Error sending message: ${error instanceof Error ? error.message : 'Unknown error'}`;
     }
+  }
 
-    if (text.startsWith('/summary')) {
-      return this.handleSummary(user, client as ClientDocument);
+  async sendMessage(
+    chatId: number,
+    text: string,
+    botToken: string,
+  ): Promise<any> {
+    try {
+      const response: AxiosResponse = await axios.post(
+        `https://api.telegram.org/bot${botToken}/sendMessage`,
+        {
+          chat_id: chatId,
+          text,
+          parse_mode: 'Markdown',
+        },
+      );
+      this.logger.log(`Sent message to chat ${chatId}: ${text}`);
+      return response.data;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error(
+          `Error sending message to chat ${chatId}: ${error.message}`,
+        );
+        throw error;
+      } else {
+        this.logger.error(`Unknown error sending message to chat ${chatId}`);
+        throw new Error('Unknown error sending message');
+      }
     }
-
-    return 'Unknown command. Type /help for available commands.';
   }
 
   private async handleAddExpense(
