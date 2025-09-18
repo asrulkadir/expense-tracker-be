@@ -46,7 +46,7 @@ async function seed() {
     const expenses = [
       {
         clientId: new Types.ObjectId(client._id as string),
-        userId: new Types.ObjectId(user._id as string),
+        userId: new Types.ObjectId(user._id),
         amount: 15000,
         category: ExpenseCategory.FOOD,
         note: 'Nasi goreng ayam',
@@ -54,7 +54,7 @@ async function seed() {
       },
       {
         clientId: new Types.ObjectId(client._id as string),
-        userId: new Types.ObjectId(user._id as string),
+        userId: new Types.ObjectId(user._id),
         amount: 25000,
         category: ExpenseCategory.TRANSPORT,
         note: 'Grab ke kantor',
@@ -62,7 +62,7 @@ async function seed() {
       },
       {
         clientId: new Types.ObjectId(client._id as string),
-        userId: new Types.ObjectId(user._id as string),
+        userId: new Types.ObjectId(user._id),
         amount: 50000,
         category: ExpenseCategory.ENTERTAINMENT,
         note: 'Bioskop dengan teman',
@@ -70,7 +70,7 @@ async function seed() {
       },
       {
         clientId: new Types.ObjectId(client._id as string),
-        userId: new Types.ObjectId(user._id as string),
+        userId: new Types.ObjectId(user._id),
         amount: 75000,
         category: ExpenseCategory.SHOPPING,
         note: 'Beli baju',
@@ -78,7 +78,7 @@ async function seed() {
       },
       {
         clientId: new Types.ObjectId(client._id as string),
-        userId: new Types.ObjectId(user._id as string),
+        userId: new Types.ObjectId(user._id),
         amount: 30000,
         category: ExpenseCategory.HEALTH,
         note: 'Obat batuk',
@@ -86,7 +86,7 @@ async function seed() {
       },
       {
         clientId: new Types.ObjectId(client._id as string),
-        userId: new Types.ObjectId(user._id as string),
+        userId: new Types.ObjectId(user._id),
         amount: 100000,
         category: ExpenseCategory.UTILITIES,
         note: 'Bayar listrik',
